@@ -1,0 +1,36 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Môi trường ảo (Virtual Environments)
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Spark / Delta Lake Temp & Metadata logs
+.ivy2/
+metastore_db/
+derby.log
+*.log
+
+# Dữ liệu Data Lakehouse (Chỉ lưu code, KHÔNG push dữ liệu thô / Delta Lake lên Git)
+data/
+data_lakehouse/
+00 Dataset/
+*.parquet
+*.json
+*.csv
+
+# VS Code & IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk files
+.DS_Store
+Thumbs.db
