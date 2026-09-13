@@ -1,55 +1,49 @@
 # -*- coding: utf-8 -*-
 r"""
 Customer360 Lakehouse - Khởi tạo SparkSession có Delta Lake.
-
-Mọi job đều gọi `get_spark(app_name)` để có một SparkSession đã bật sẵn:
-  - Delta SQL extension (DeltaSparkSessionExtension)
-  - Delta catalog (DeltaCatalog)
-  - Tự động tải jar delta-spark qua `configure_spark_with_delta_pip`
-    nên không cần khai báo --packages thủ công khi chạy bằng `python file.py`.
-
-Yêu cầu: pip install pyspark delta-spark (xem requirements_lakehouse.txt).
 """
 
 from __future__ import annotations
-import os
+from lakehouse.config import RAW_CONTENT_DIR, RAW_SEARCH_DIR
+from pyspark.sql import SparkSession
 
-# --- TRIỆT TIÊU XUNG ĐỘT BẢN SPARK HỆ THỐNG ---
-# Xóa SPARK_HOME nếu có để ép PySpark sử dụng đúng bản trong môi trường virtualenv/conda (v3.5.0)
+import os
+import sys
+
+# --- BẮT BUỘC set TRƯỚC khi import pyspark ---
+# Ép driver VÀ worker dùng đúng python trong venv hiện tại.
+# Thiếu bước này, PySpark trên Windows có thể spawn worker bằng python khác
+# (không có pyspark/delta cài, hoặc khác version) -> worker crash ngay khi
+# chạy UDF (không lỗi khi chỉ dùng Spark native function).
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
 if "SPARK_HOME" in os.environ:
     del os.environ["SPARK_HOME"]
 
-from pyspark.sql import SparkSession
-from lakehouse.config import RAW_CONTENT_DIR, RAW_SEARCH_DIR
 
 try:
-    # delta-spark cung cấp helper gắn đúng version jar tương thích với PySpark.
-    from delta import configure_spark_with_delta_pip  # type: ignore
-except ImportError as exc:  # pragma: no cover
+    from delta import configure_spark_with_delta_pip
+except ImportError as exc:
     raise ImportError(
         "Thiếu package 'delta-spark'. Cài bằng: pip install delta-spark"
     ) from exc
 
 
 def get_spark(app_name: str = "Customer360_Lakehouse", driver_memory: str = "4g") -> SparkSession:
-    """Tạo (hoặc lấy lại) SparkSession đã cấu hình Delta Lake."""
     builder = (
         SparkSession.builder
         .appName(app_name)
         .config("spark.driver.memory", driver_memory)
-        # --- Bật Delta Lake ---
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        # Cho phép schema evolution mặc định khi MERGE/append.
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .config("spark.databricks.delta.schema.autoMerge.enabled", "true")
-        # Giảm số file nhỏ khi ghi (auto compaction / optimize write của Delta).
         .config("spark.databricks.delta.optimizeWrite.enabled", "true")
         .config("spark.databricks.delta.autoCompact.enabled", "true")
-        # Shuffle partitions vừa phải cho dữ liệu cỡ local/demo.
         .config("spark.sql.shuffle.partitions", "8")
+        # Ép executor cũng nhận đúng biến môi trường Python (đề phòng trường hợp
+        # local mode không tự propagate từ os.environ của driver)
+        .config("spark.executorEnv.PYSPARK_PYTHON", sys.executable)
     )
 
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
