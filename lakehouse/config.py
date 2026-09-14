@@ -58,3 +58,16 @@ ONLY_DIGITS_REGEX = r"^[0-9]+$"
 HAS_ALNUM_REGEX = r".*[a-zA-ZÀ-ỹà-ỹ0-9].*"
 BAD_EXACT_KEYWORDS = ["null", "none", "na",
                       "n/a", "undefined", "unk", "unknown", ""]
+
+STREAM_LANDING_DIR = os.path.join(
+    PROJECT_ROOT, "data", "stream_landing", "log_search")
+CHECKPOINT_ROOT = os.path.join(PROJECT_ROOT, "data", "_checkpoints")
+
+
+def checkpoint_path(name: str) -> str:
+    return os.path.join(CHECKPOINT_ROOT, name)
+
+
+# "microbatch" (chạy liên tục) hoặc "availableNow" (xử lý hết rồi dừng)
+STREAM_MODE = "availableNow"
+STREAM_TRIGGER_INTERVAL = "30 seconds"
