@@ -49,13 +49,3 @@ def get_spark(app_name: str = "Customer360_Lakehouse", driver_memory: str = "4g"
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     return spark
-
-
-if __name__ == "__main__":
-    print("content exists:", os.path.exists(RAW_CONTENT_DIR))
-    print("search exists:", os.path.exists(RAW_SEARCH_DIR))
-
-    spark = get_spark("test_session")
-    print("Spark Version đang sử dụng:", spark.version)
-    spark.sql("SELECT 1 AS test").show()
-    spark.stop()
