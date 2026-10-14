@@ -48,6 +48,8 @@ lakehouse/
 reference/
 ├── customer_key_bridge.csv      # bảng ánh xạ user_id <-> contract (identity resolution)
 └── keyword_category_mapping.csv # mapping keyword -> category
+eda/
+└── EDA_Customer360.ipynb        # Notebook thực hiện EDA (Python, SQL) để khám phá xu hướng, phân khúc người dùng
 requirements.txt
 ```
 
@@ -143,6 +145,16 @@ python -m lakehouse.silver.stream_clean_search
 
 Hai job này chạy song song, độc lập với pipeline batch, dùng chung logic làm sạch keyword với `clean_search.py` (qua `foreachBatch`). Checkpoint dùng để đảm bảo exactly-once — không nạp trùng dữ liệu khi job khởi động lại. Gold vẫn được làm tươi bằng cách chạy lại nhóm job Gold theo lịch (`python -m lakehouse.run_pipeline --from-stage gold`).
 
+## Data Exploration (EDA)
+
+Để thấu hiểu hành vi người dùng và tìm ra các cơ hội cho sản phẩm (product opportunities), dự án bao gồm bước phân tích dữ liệu khám phá (EDA) sử dụng **Python (PySpark, Pandas, Seaborn)** và **SQL** trên các bảng Delta tầng Gold. Các phân tích chính bao gồm:
+
+1. **Khám phá phân khúc người dùng (User Segments):** Trực quan hóa phân bố khẩu vị nội dung (Phim truyện, Thể thao, v.v.) để xác định các nhóm khách hàng trọng tâm.
+2. **Khám phá xu hướng & Dịch chuyển sở thích (Trends & Shifts):** Phân tích sự thay đổi trong danh mục tìm kiếm giữa các tháng (ví dụ: Anime -> Phim Hàn) để cá nhân hóa gợi ý nội dung.
+3. **Phát hiện cơ hội sản phẩm:** Phân tích độ lệch (tăng/giảm đột biến) của các từ khóa tìm kiếm giữa T6 và T7 để hỗ trợ đội ngũ Content và Marketing.
+
+Chi tiết biểu đồ và logic phân tích xem tại: `eda/EDA_Customer360.ipynb`.
+
 ## Known issues
 
 - **Bridge table (`reference/customer_key_bridge.csv`) là dữ liệu sinh tổng hợp** (~30% tỷ lệ khớp ngẫu nhiên) — chưa có ánh xạ định danh `user_id ↔ contract` thật, nên phần lớn khách chưa ghép được sang content profile trong bảng cuối.
@@ -150,7 +162,7 @@ Hai job này chạy song song, độc lập với pipeline batch, dùng chung lo
 
 ## Resume Highlights
 
-- Built an end-to-end **Customer360 ETL data lakehouse** using **PySpark + Delta Lake** (Medallion architecture)
-- Implemented **incremental MERGE/upsert** and **near-realtime streaming** (Spark Structured Streaming)
+- Built an end-to-end **Customer360 ETL data lakehouse** using **PySpark + Delta Lake** (Medallion architecture)
+- Implemented **incremental MERGE/upsert** and **near-realtime streaming** (Spark Structured Streaming)
+- Performed **EDA** on user behavioral data (search & content logs) using **Python and SQL** to uncover content trends, user segments, and product opportunities.
 - Designed Vietnamese text cleaning + keyword→category classification
-- Detected user behavior/interest shifts across time for segmentation & recommendation

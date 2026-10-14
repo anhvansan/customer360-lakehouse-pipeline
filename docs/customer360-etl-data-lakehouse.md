@@ -288,6 +288,16 @@ Mỗi dòng bảng cuối là **một khách hàng**:
 
 **Nhờ Delta, còn có thể:** xem lại bảng ở phiên bản trước bằng **time travel**, và audit lịch sử thay đổi (`DESCRIBE HISTORY`).
 
+## 6.5. Data Exploration (EDA) - Khai phá dữ liệu hành vi
+
+Sau khi dữ liệu được làm sạch và tổng hợp tại tầng Gold, quá trình **EDA (Exploratory Data Analysis)** được thực hiện bằng Python (PySpark, Pandas) và các thư viện trực quan hóa nhằm trực tiếp trả lời các bài toán kinh doanh. Dữ liệu hành vi (behavioral data) được phân tích để tìm ra:
+
+- **Phân khúc người dùng (User Segments):** Trực quan hóa phân bố `most_watch_type` (Khẩu vị nội dung phổ biến nhất) để biết nhóm nội dung nào đang giữ chân người dùng tốt nhất, từ đó phân tập khách hàng phục vụ chiến dịch Retargeting.
+- **Xu hướng hành vi (Behavior Trends):** Trích xuất Top 10 xu hướng dịch chuyển sở thích (ví dụ: người dùng đổi từ tìm kiếm "Anime" sang "Phim Hàn Quốc") của khách hàng qua các tháng. Insight này giúp hệ thống Recommendation system gợi ý nội dung chuẩn xác hơn.
+- **Cơ hội sản phẩm (Product Opportunities):** Đánh giá sự chênh lệch (Diverging trends) của các từ khóa tăng/giảm mạnh nhất giữa Tháng 6 và Tháng 7. Các từ khóa tăng đột biến là tín hiệu sớm để đội ngũ Sản phẩm/Nội dung mua bản quyền hoặc đẩy luồng Marketing kịp thời.
+
+_Quy trình EDA này sử dụng PySpark để xử lý Big Data trên tầng Gold, sau đó chuyển đổi (toPandas) để biểu diễn biểu đồ với Seaborn/Matplotlib._
+
 ---
 
 ## 7. Known limitations (nói thẳng khi phỏng vấn)
